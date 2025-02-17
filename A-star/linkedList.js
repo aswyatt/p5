@@ -1,8 +1,8 @@
 class Node {
-    constructor(data) {
+    constructor(data, prev=null, next=null) {
         this.data = data;
-        this.next = null;
-        this.prev = null;
+        this.next = next;
+        this.prev = prev;
     }
 }
 
@@ -14,84 +14,42 @@ class DoublyLinkedList {
 
     // Add a node to the end of the list
     append(data) {
-        let newNode = new Node(data);
-
-        if (this.head === null) {
-            this.head = newNode;
-            this.tail = newNode;
-        } else {
+        let newNode = new Node(data, this.tail)
+        if (this.tail) {
             this.tail.next = newNode;
-            newNode.prev = this.tail;
-            this.tail = newNode;
+        } else {
+            this.head = newNode;
         }
+        this.tail = newNode;
+    }
+
+    length() {
+        let current = this.head;
+        let count = 0;
+        while (current !== null) {
+            count++;
+            current = current.next;
+        }
+        return count;
     }
 
     pop(n = null) {
-        let current, count, first, last, prev, next, nextNode, prevNode;
-        // Start from tail if n is null or negative
+        let current, count, next;
         if (n === null || n < 0) {
-            first = "tail";
-            last = "head";
-            prev = "next";
-            next = "prev";
+            current = this.tail;
+            next = (node) => node.prev;
         } else {
-            first = "tail";
-            last = "head";
-            prev = "prev";
-            next = "next";
+            current = this.head;
+            next = (node) => node.next;
         }
 
-        current = this[first];
-        count = 0;
         n = Math.abs(n);
-
+        count = 0;
         while (current !== null && count < n) {
-            current = current[incr];
+            current = next(current);
             count++;
         }
         if (current) {
-            prevNode = current[prev];
-            nextNode = current[next];
-            if (prevNode) {
-                prevNode[next] = nextNode;
-            } else {
-                this[first] = nextNode;
-            }
-            if (nextNode) {
-                nextNode[prev] = prevNode;
-            } else {
-                this[last] = prevNode;
-            }
-        }
-        return current;
-    }
-
-    pop1(n = null) {
-        if (this.head === null) {
-            return null;
-        }
-
-        let current, count;
-
-        if (n === null || n >= 0) {
-            // Start from head if n is null or non-negative
-            current = this.head;
-            count = 0;
-            while (current !== null && count < (n === null ? Infinity : n)) {
-                current = current.next;
-                count++;
-            }
-        } else {
-            // Start from tail if n is negative
-            current = this.tail;
-            count = -1;
-            while (current !== null && count > n) {
-                current = current.prev;
-                count--;
-            }
-        }
-
-        if (current !== null) {
             if (current.prev) {
                 current.prev.next = current.next;
             } else {
@@ -102,81 +60,58 @@ class DoublyLinkedList {
             } else {
                 this.tail = current.prev;
             }
-            return current;
+        }
+        return current;
+    }
+
+    findNode(data) {
+        let current = this.head;
+        while (current !== null) {
+            if (current.data === data) {
+                return current;
+            }
+            current = current.next;
         }
         return null;
     }
 
-
-    // New pop function
-    pop2(n = null) {
-        if (this.head === null) {
-            return null;
+    insertAfter(newData, prevNode=this.tail) {
+        if (prevNode === null) {
+            this.append(newData);
+            return;
         }
 
-        if (n === null) {
-            // Remove the last node
-            let poppedNode = this.tail;
-            if (this.tail.prev) {
-                this.tail = this.tail.prev;
-                this.tail.next = null;
-            } else {
-                this.head = null;
-                this.tail = null;
-            }
-            return poppedNode;
-        } else if (n >= 0) {
-            // Remove the nth node from the start
-            let current = this.head;
-            let count = 0;
-            while (current !== null && count < n) {
-                current = current.next;
-                count++;
-            }
-            if (current !== null) {
-                if (current.prev) {
-                    current.prev.next = current.next;
-                } else {
-                    this.head = current.next;
-                }
-                if (current.next) {
-                    current.next.prev = current.prev;
-                } else {
-                    this.tail = current.prev;
-                }
-                return current;
-            }
+        let newNode = new Node(newData, prevNode, prevNode.next);
+        if (prevNode.next) {
+            prevNode.next.prev = newNode;
         } else {
-            // Remove the nth node from the end
-            let current = this.tail;
-            let count = -1;
-            while (current !== null && count > n) {
-                current = current.prev;
-                count--;
-            }
-            if (current !== null) {
-                if (current.next) {
-                    current.next.prev = current.prev;
-                } else {
-                    this.tail = current.prev;
-                }
-                if (current.prev) {
-                    current.prev.next = current.next;
-                } else {
-                    this.head = current.next;
-                }
-                return current;
-            }
+            this.tail = newNode;
         }
-        return null;
+        prevNode.next = newNode;
+    }
+
+    insertBefore(newData, nextNode=this.head) {
+        if (nextNode === null) {
+            this.append(newData);
+            return;
+        }
+        let newNode = new Node(newData, nextNode.prev, nextNode);
+        if (nextNode.prev) {
+            nextNode.prev.next = newNode;
+        } else {
+            this.head = newNode;
+        }
+        nextNode.prev = newNode;
     }
 
     // Display the list
     display() {
         let current = this.head;
+        let s = "";
         while (current !== null) {
-            console.log(current.data);
+            s += (s ? " <> " : "") + current.data;
             current = current.next;
         }
+        console.log(s?s:"Empty list");
     }
 }
