@@ -1,5 +1,5 @@
 class Node {
-    constructor(data, prev=null, next=null) {
+    constructor(data, prev = null, next = null) {
         this.data = data;
         this.next = next;
         this.prev = prev;
@@ -75,7 +75,7 @@ class DoublyLinkedList {
         return null;
     }
 
-    insertAfter(newData, prevNode=this.tail) {
+    insertAfter(newData, prevNode = this.tail) {
         if (prevNode === null) {
             this.append(newData);
             return;
@@ -90,7 +90,7 @@ class DoublyLinkedList {
         prevNode.next = newNode;
     }
 
-    insertBefore(newData, nextNode=this.head) {
+    insertBefore(newData, nextNode = this.head) {
         if (nextNode === null) {
             this.append(newData);
             return;
@@ -104,14 +104,18 @@ class DoublyLinkedList {
         nextNode.prev = newNode;
     }
 
-    // Display the list
-    display() {
+    toString() {
         let current = this.head;
         let s = "";
         while (current !== null) {
             s += (s ? " <> " : "") + current.data;
             current = current.next;
         }
-        console.log(s?s:"Empty list");
+        return s
+    }
+
+    // Display the list
+    display() {
+        console.log(this.toString());
     }
 }
