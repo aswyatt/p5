@@ -102,7 +102,7 @@ class Grid {
         } else {
           fill(0);
           noStroke();
-          ellipse(x1, y1, scaleX / 2, scaleY / 2);
+          ellipse(x1, y1, scaleX / 4, scaleY / 4);
         }
       }
     }

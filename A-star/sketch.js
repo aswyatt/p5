@@ -13,7 +13,7 @@ function drawBoundary() {
 
 function setup() {
   createCanvas(1200, 800);
-  grid = new Grid(10, 8, 0.2);
+  grid = new Grid(100, 80, 0.2);
   scaleX = width / grid.Nx;
   scaleY = height / grid.Ny;
 
@@ -23,18 +23,21 @@ function setup() {
     distance,
     manhatten
   );
-}
-
-function draw() {
   background(255);
   drawBoundary();
   grid.display(scaleX, scaleY);
+}
 
-  if (aStar.openSet.head){
+function draw() {
+  if (aStar.closedSet) aStar.plotClosed(scaleX, scaleY);
+  if (aStar.openSet.head) {
     aStar.plotOpen(scaleX, scaleY);
     aStar.iterate();
-  }
+  } else console.log("NO PATH FOUND!");
 
-  if (aStar.closedSet.head)
-    aStar.plotClosed(scaleX, scaleY);
+  if (aStar.finalPath.head) {
+    aStar.plotFinal(scaleX, scaleY);
+    console.log("Final Path:" + aStar.finalPath.toString());
+    noLoop();
+  }
 }
