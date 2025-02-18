@@ -6,6 +6,7 @@ class gridPoint {
     this.gScore = Infinity;
     this.fScore = Infinity;
     this.setNeighbours(neighbours);
+    this.cameFrom = null;
   }
   setNeighbours(neighbours = []) {
     this.neighbours = neighbours;
@@ -75,7 +76,7 @@ class Grid {
     }
   }
 
-  display(scaleX, scaleY, connections = false) {
+  display(connections = false) {
     push();
     for (let row of this.cells) {
       for (let cell of row) {

@@ -4,29 +4,31 @@ class AStar {
     openSet.append(start);
     this.openSet = openSet;
     this.finalPath = new DoublyLinkedList();
-    this.closedSet = [];
+    // this.closedSet = [];
     this.start = start;
     this.end = end;
     this.evalg = gFun;
     this.evalh = hFun;
     this.start.gScore = 0;
     this.start.fScore = this.evalh(start, end);
-    this.closedUpdated = false;
     this.openUpdated = false;
+    // this.closedUpdated = false;
   }
 
   generatePath(currentData) {
     this.finalPath.append(currentData);
     while (currentData !== this.start) {
-      let index = this.closedSet.findIndex(obj => obj.data === currentData);
-      if (index === -1) break;
-      currentData = this.closedSet[index].prev;
+      currentData = currentData.cameFrom;
       this.finalPath.insertBefore(currentData);
-      this.closedSet.splice(index, 1);
+      // let index = this.closedSet.findIndex(obj => obj.data === currentData);
+      // if (index === -1) break;
+      // currentData = this.closedSet[index].prev;
+      // this.finalPath.insertBefore(currentData);
+      // this.closedSet.splice(index, 1);
     }
   }
 
-  addToOpenSet(cell) {
+  addToOpenSet(cell, plot = false) {
     if (!this.openSet.head) {
       this.openSet.append(cell);
       return;
@@ -52,26 +54,43 @@ class AStar {
       this.openSet.insertBefore(cell, current);
     }
     this.openUpdated = true;
+
+    if (plot) {
+      // while (cell) {
+        // let blue = int(255*Math.exp(-(cell.fScore/this.start.fScore)**2));
+        let blue = int(255 * (this.start.fScore / cell.fScore) ** scaleP)
+        // let blue = constrain(int(map(
+        //   cell.fScore,
+        //   this.start.fScore,
+        //   this.start.fScore * 1.5,
+        //   255,
+        //   100
+        // )), 0, 255);
+        // console.log(blue);
+        this.plotNode(cell, [0, 0, constrain(blue, 0, 255)]);
+        // cell = cell.cameFrom;
+      // }
+    }
   }
 
-  addToClosedSet(currentData, neighbourData) {
-    let index = this.closedSet.findIndex(obj => obj.data === neighbourData);
-    if (index !== -1) {
-      this.closedSet[index].prev = currentData;
-    } else this.closedSet.push({ data: neighbourData, prev: currentData });
-    this.closedUpdated = true;
-  }
+  // addToClosedSet(currentData, neighbourData) {
+  //   let index = this.closedSet.findIndex(obj => obj.data === neighbourData);
+  //   if (index !== -1) {
+  //     this.closedSet[index].prev = currentData;
+  //   } else this.closedSet.push({ data: neighbourData, prev: currentData });
+  //   this.closedUpdated = true;
+  // }
 
-  printClosedSet() {
-    for (let [index, obj] of this.closedSet.entries())
-      console.log(
-        index + ":",
-        obj.data.toString() + "<-" + obj.prev.toString()
-      );
-  }
+  // printClosedSet() {
+  //   for (let [index, obj] of this.closedSet.entries())
+  //     console.log(
+  //       index + ":",
+  //       obj.data.toString() + "<-" + obj.prev.toString()
+  //     );
+  // }
 
   iterate() {
-    this.closedUpdated = false;
+    // this.closedUpdated = false;
     this.openUpdated = false;
     let currentNode = this.openSet.pop(0);
     let currentData = currentNode.data;
@@ -80,26 +99,28 @@ class AStar {
       this.generatePath(currentData);
     }
 
-    this.openSet.removeNode(currentNode)
+    this.openSet.removeNode(currentNode);
     for (let neighbour of currentData.neighbours) {
       let score = currentData.gScore + this.evalg(currentData, neighbour);
       if (score < neighbour.gScore) {
-        this.addToClosedSet(currentData, neighbour);
+        neighbour.cameFrom = currentData;
+        // this.addToClosedSet(currentData, neighbour);
         neighbour.gScore = score;
         neighbour.fScore = score + this.evalh(currentData, this.end);
-        if (!this.openSet.findNode(neighbour)) this.addToOpenSet(neighbour);
+        this.addToOpenSet(neighbour, true);
+        // if (!this.openSet.findNode(neighbour)) this.addToOpenSet(neighbour);
       }
     }
   }
 
-  plotSet(scaleX, scaleY, current, colour) {
-    while (current) {
-      this.plotNode(scaleX, scaleY, current.data, colour);
-      current = current.next;
+  plotSet(currentNode, colour) {
+    while (currentNode) {
+      this.plotNode(currentNode.data, colour);
+      currentNode = currentNode.next;
     }
   }
 
-  plotNode(scaleX, scaleY, data1, colour) {
+  plotNode(data1, colour = [0, 0, 0]) {
     push();
     let x1 = (data1.nx + 0.5) * scaleX;
     let y1 = (data1.ny + 0.5) * scaleY;
@@ -109,16 +130,18 @@ class AStar {
     pop();
   }
 
-  plotOpen(scaleX, scaleY) {
-    this.plotSet(scaleX, scaleY, this.openSet.head, [0, 0, 255]);
+  plotOpen() {
+    this.plotSet(this.openSet.head, [0, 0, 255]);
   }
-  plotFinal(scaleX, scaleY) {
-    this.plotSet(scaleX, scaleY, this.finalPath.head, [0, 200, 0]);
+
+  plotFinal() {
+    this.plotSet(this.finalPath.head, [0, 200, 0]);
   }
-  plotClosed(scaleX, scaleY) {
-    for (let obj of this.closedSet)
-      this.plotNode(scaleX, scaleY, obj.prev, [255, 0, 255]);
-  }
+
+  // plotClosed(scaleX, scaleY) {
+  //   for (let obj of this.closedSet)
+  //     this.plotNode(scaleX, scaleY, obj.prev, [255, 0, 255]);
+  // }
 
   run() {
     while (this.openSet.head) this.iterate();
