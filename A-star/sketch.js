@@ -1,18 +1,30 @@
-let grid, scaleX, scaleY, scaleP, speed;
-let chebyshev = (a, b) =>
-  Math.max(Math.abs(a.nx - b.nx), Math.abs(a.ny - b.ny));
-let distance = (a, b) => Math.sqrt((a.nx - b.nx) ** 2 + (a.ny - b.ny) ** 2);
-let manhatten = (a, b) => Math.abs(a.nx - b.nx) + Math.abs(a.ny - b.ny);
+let grid, aStar;
 
-// let actualDistance = chebyshev;
-// let actualDistance = (a, b) =>1/(1/chebyshev(a,b) + 1/distance(a,b));
-let heuristicDistance = chebyshev;
-let actualDistance = distance;
-// let heuristicDistance = distance;
-speed = 10;
+// Define distance functions
+let deltaX = (a, b) => Math.abs(a.x - b.x);
+let deltaY = (a, b) => Math.abs(a.y - b.y);
+let chebyshev = (a, b) => Math.max(deltaX(a, b), deltaY(a, b));
+let euclidean = (a, b) => Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+let manhatten = (a, b) => deltaX(a, b) + deltaY(a, b);
+let geometric = (a, b) => 1 / (1 / chebyshev(a, b) + 1 / euclidean(a, b));
 
-let diagonals = false;
+/* **********************************************
+  U S E R   D E F I N E D   P A R A M E T E R S
+
+  Edit this to modify simulation
+ ************************************************/
+let DIAGONALS = true;
+let SPEED = 100;
+let prob = 0.3;
+let WIDTH = 1700;
+let HEIGHT = 900;
+let SCALE = 5;
+let hDIST = chebyshev;
+let gDIST = euclidean;
+
+// Draw the canvas
 function drawBoundary() {
+  background(255);
   push();
   noFill();
   stroke(0);
@@ -21,50 +33,50 @@ function drawBoundary() {
 }
 
 function setup() {
-  createCanvas(1700, 900);
-  grid = new Grid(int(width / 10), int(height / 10), 0.3, diagonals);
-  scaleX = width / grid.Nx;
-  scaleY = height / grid.Ny;
-  scaleP = int(
-    Math.sqrt(1 / (1 / grid.Nx + 1 / grid.Ny)) *
-      (1 + (actualDistance !== distance))
+  createCanvas(WIDTH, HEIGHT);
+  grid = new Grid(
+    int(width / SCALE),
+    int(height / SCALE),
+    prob,
+    DIAGONALS,
+    (initialUserData = { fScore: Infinity, gScore: Infinity, cameFrom: null })
   );
-  // scaleP = int(
-  //   Math.sqrt(1 / (1 / grid.Nx + 1 / grid.Ny)) *
-  //     (1 + (actualDistance !== distance) - 0.5 * (actualDistance === distance))
-  // );
 
+  let scale = {
+    x: width / grid.Nx,
+    y: height / grid.Ny,
+    l: int(
+      Math.sqrt(1 / (1 / grid.Nx + 1 / grid.Ny)) *
+        (1 + 3*(gDIST == chebyshev) - 0.25*(DIAGONALS===false) - 0.5*(gDIST===manhatten))
+    )
+  };
   aStar = new AStar(
     grid.cells[0][0],
     grid.cells[grid.Nx - 1][grid.Ny - 1],
-    actualDistance,
-    heuristicDistance
+    gDIST,
+    hDIST,
+    scale
   );
-  background(255);
+
   drawBoundary();
   grid.display();
-  count = 0;
 }
 
 function draw() {
-  // count++;
-  for (let n = 0; n < speed; n++)
+  // Loop over multiple iterations before actually drawing (speeds up the visualisation)
+  for (let n = 0; n < SPEED; n++)
     if (aStar.openSet.head) aStar.iterate();
-    else console.log("NO PATH FOUND!");
-  // aStar.plotOpen(scaleX, scaleY);
-
-  // if (!(count % 20)) {
-  // aStar.plotClosed(scaleX, scaleY);
-  // aStar.plotOpen(scaleX, scaleY);
-  // }
-  // if (aStar.closedUpdated) aStar.plotClosed(scaleX, scaleY);
-  // if (aStar.openUpdated) aStar.plotOpen(scaleX, scaleY);
+    else {
+      console.log("NO PATH FOUND!");
+      noLoop();
+      break;
+    }
 
   if (aStar.finalPath.head) {
     aStar.plotFinal();
     console.log("Final Path:" + aStar.finalPath.toString());
-    console.log("Estimated score:", aStar.start.fScore);
-    console.log("Actual score:", aStar.end.gScore);
+    console.log("Estimated score:", aStar.start.userData.fScore);
+    console.log("Actual score:", aStar.end.userData.gScore);
     noLoop();
   }
 }

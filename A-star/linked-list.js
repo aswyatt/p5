@@ -1,3 +1,7 @@
+// Implementation of a doubly linked list
+// Note that methods do not perform error checking - it is down to the user to ensure supplied arguments and objects are valid.
+
+// Doubly linked list node
 class dLLNode {
   constructor(data, prev = null, next = null) {
     this.data = data;
@@ -6,6 +10,9 @@ class dLLNode {
   }
 }
 
+/* Doublylinked list implementation
+  Only requires knowledge of head and tail; each node keeps track of prev and next node.
+*/
 class DoublyLinkedList {
   constructor() {
     this.head = null;
@@ -23,6 +30,7 @@ class DoublyLinkedList {
     this.tail = newNode;
   }
 
+  // Returns the length of the list by counting the number of nodes
   length() {
     let current = this.head;
     let count = 0;
@@ -33,8 +41,15 @@ class DoublyLinkedList {
     return count;
   }
 
+  // Removes an element from the list and returning the node.
+  // n is an optional index:
+  //    n === null --> pop's the last element
+  //    n >=0 --> pop's the nth element from the head
+  //    n <0 --> pop's the nth element from the tail
   pop(n = null) {
     let current, count, next;
+
+    // Determine direction of travel (either from head or start)
     if (n === null || n < 0) {
       current = this.tail;
       next = node => node.prev;
@@ -45,10 +60,15 @@ class DoublyLinkedList {
 
     n = Math.abs(n);
     count = 0;
+
+    // Loop through until either head/tail is reached or n nodes have been traversed.
     while (current !== null && count < n) {
       current = next(current);
       count++;
     }
+
+    // Check found node is valid (i.e. not head or tail)
+    // If so, replace prev and next referencs of adjacent nodes, checking if they are head or tail.
     if (current) {
       if (current.prev) {
         current.prev.next = current.next;
@@ -64,17 +84,29 @@ class DoublyLinkedList {
     return current;
   }
 
-  findNode(data) {
-    let current = this.head;
+  // Loop through list searching for first node that matches the input data.
+  // Can either traverse forwards (from head, default), or backwards (from tail).
+  findNode(data, forward = true) {
+    let current, next;
+    if (forward) {
+      current = this.head;
+      next = node => node.next;
+    }
+    {
+      current = this.tail;
+      next = node => node.prev;
+    }
     while (current !== null) {
       if (current.data === data) {
         return current;
       }
-      current = current.next;
+      current = next(current);
     }
     return null;
   }
 
+  // Insert data into a node after a given node.
+  // If no node supplied, append to end of list
   insertAfter(newData, prevNode = this.tail) {
     if (prevNode === null) {
       this.append(newData);
@@ -90,6 +122,8 @@ class DoublyLinkedList {
     prevNode.next = newNode;
   }
 
+  // Insert data into a node before a given node.
+  // If no node supplied, prepend to start of list
   insertBefore(newData, nextNode = this.head) {
     if (nextNode === null) {
       this.append(newData);
@@ -104,6 +138,8 @@ class DoublyLinkedList {
     nextNode.prev = newNode;
   }
 
+  // Remove a given node from the list
+  // Assumes node exists in list and simply uses it's prev/next references to update links
   removeNode(node) {
     let prev = node.prev;
     let next = node.next;
@@ -113,6 +149,8 @@ class DoublyLinkedList {
     else this.tail = prev;
   }
 
+  // Generate a string representing the list, output:
+  // data[0] <> data[1] <> data[2] ...
   toString() {
     let current = this.head;
     let s = "";
@@ -123,7 +161,7 @@ class DoublyLinkedList {
     return s;
   }
 
-  // Display the list
+  // Display the list to console
   display() {
     console.log(this.toString());
   }
