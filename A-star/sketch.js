@@ -4,6 +4,10 @@ let chebyshev = (a, b) =>
 let distance = (a, b) => Math.sqrt((a.nx - b.nx) ** 2 + (a.ny - b.ny) ** 2);
 let manhatten = (a, b) => Math.abs(a.nx - b.nx) + Math.abs(a.ny - b.ny);
 
+
+let actualDistance = chebyshev;
+let heuristicDistance = chebyshev;
+
 function drawBoundary() {
   push();
   noFill();
@@ -22,8 +26,8 @@ function setup() {
   aStar = new AStar(
     grid.cells[0][0],
     grid.cells[grid.Nx - 1][grid.Ny - 1],
-    distance,
-    chebyshev
+    actualDistance,
+    heuristicDistance
   );
   background(255);
   drawBoundary();
