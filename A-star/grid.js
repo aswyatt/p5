@@ -12,14 +12,8 @@ class gridPoint {
   }
 
   toString() {
-    return (
-        "(" +
-        this.nx +
-        "," +
-        this.ny +
-        ")"
-      );
-      // return (
+    return "(" + this.nx + "," + this.ny + ")";
+    // return (
     //   "(" +
     //   this.nx +
     //   "," +
@@ -34,15 +28,15 @@ class gridPoint {
 }
 
 class Grid {
-  constructor(Nx, Ny, prob = 0) {
+  constructor(Nx, Ny, prob = 0, diagonals = false) {
     this.Nx = Nx;
     this.Ny = Ny;
     this.cells = [];
     this.createGrid(prob);
-    this.initializeNeighbours();
+    this.initializeNeighbours(diagonals);
   }
 
-  createGrid(prob = 0) {
+  createGrid(prob) {
     for (let nx = 0; nx < this.Nx; nx++) {
       let row = [];
       for (let ny = 0; ny < this.Ny; ny++) {
@@ -56,7 +50,7 @@ class Grid {
     }
   }
 
-  initializeNeighbours() {
+  initializeNeighbours(diagonals) {
     for (let nx = 0; nx < this.Nx; nx++) {
       for (let ny = 0; ny < this.Ny; ny++) {
         let cell = this.cells[nx][ny];
@@ -64,17 +58,16 @@ class Grid {
         let neighbours = [];
         for (let dnx = -1; dnx <= 1; dnx++) {
           for (let dny = -1; dny <= 1; dny++) {
-            if (Math.abs(dnx) === Math.abs(dny)) continue;
+            if (
+              (diagonals && dnx === 0 && dny === 0) ||
+              (!diagonals && Math.abs(dnx) === Math.abs(dny))
+            )
+              continue;
             let nx2 = nx + dnx;
             let ny2 = ny + dny;
-            if (
-              nx2 >= 0 &&
-              nx2 < this.Nx &&
-              ny2 >= 0 &&
-              ny2 < this.Ny &&
-              this.cells[nx2][ny2].valid
-            )
-              neighbours.push(this.cells[nx2][ny2]);
+            let valid = nx2 >= 0 && nx2 < this.Nx && ny2 >= 0 && ny2 < this.Ny;
+            valid = valid && this.cells[nx2][ny2].valid;
+            if (valid) neighbours.push(this.cells[nx2][ny2]);
           }
         }
         cell.setNeighbours(neighbours);
@@ -82,7 +75,7 @@ class Grid {
     }
   }
 
-  display(scaleX, scaleY) {
+  display(scaleX, scaleY, connections = false) {
     push();
     for (let row of this.cells) {
       for (let cell of row) {
@@ -92,17 +85,19 @@ class Grid {
           for (let n of cell.neighbours) {
             let x2 = (n.nx + 0.5) * scaleX;
             let y2 = (n.ny + 0.5) * scaleY;
-            stroke(255, 0, 0);
-            strokeWeight(1);
-            line(x1, y1, x2, y2);
+            if (connections) {
+              stroke(255, 0, 0);
+              strokeWeight(0.1);
+              line(x1, y1, x2, y2);
+            }
             fill(255, 0, 0);
             noStroke();
-            ellipse(x1, y1, 5, 5);
+            ellipse(x1, y1, scaleX / 3, scaleY / 3);
           }
         } else {
           fill(0);
           noStroke();
-          ellipse(x1, y1, scaleX / 4, scaleY / 4);
+          ellipse(x1, y1, scaleX / 1.5, scaleY / 1.5);
         }
       }
     }
